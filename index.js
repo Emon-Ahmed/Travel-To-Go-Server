@@ -19,6 +19,7 @@ async function run() {
     const db = client.db("TravelFast");
     const blogDB = db.collection("blogs");
     const categoryDB = db.collection("category");
+    const usersCollection = db.collection("users");
 
     // POST API For Adding Blog
     app.post("/blogs", async (req, res) => {
@@ -40,14 +41,13 @@ async function run() {
       const blogs = await blog.toArray();
       res.send(blogs);
     });
-    
+
     // GET API For Finding Category
     app.get("/category", async (req, res) => {
       const category = categoryDB.find({});
       const categories = await category.toArray();
       res.send(categories);
     });
-
 
     // GET API For Finding Single Blog
     app.get("/blogs/:id", async (req, res) => {
@@ -97,7 +97,7 @@ async function run() {
       const updateCat = {
         $set: {
           Title: updatedCat.Title,
-          Banner: updatedCat.Banner
+          Banner: updatedCat.Banner,
         },
       };
       const result = await categoryDB.updateOne(filter, updateCat, options);
@@ -120,6 +120,46 @@ async function run() {
       res.json(result);
     });
 
+    // USER SECTION
+
+    // Get All User
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const result = await usersCollection.insertOne(user);
+      res.json(result);
+    });
+    // PUT Users
+    app.put("/users", async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.email };
+      const options = { upsert: true };
+      const updateDoc = { $set: user };
+      const result = await usersCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      res.json(result);
+    });
+    // Get User Email
+    app.get("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      let isAdmin = false;
+      if (user?.role === "admin") {
+        isAdmin = true;
+      }
+      res.json({ admin: isAdmin });
+    });
+    // PUT Admin Email
+    app.put("/users/admin", async (req, res) => {
+      const user = req.body;
+      const filter = { email: user.email };
+      const updateDoc = { $set: { role: "admin" } };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.json(result);
+    });
   } finally {
     // await client.close();
   }
