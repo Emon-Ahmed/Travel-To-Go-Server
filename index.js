@@ -37,9 +37,39 @@ async function run() {
 
     // GET API For Finding Blog
     app.get("/blogs", async (req, res) => {
-      const blog = blogDB.find({});
+      const blog = blogDB.find({status: 'approved'});
       const blogs = await blog.toArray();
       res.send(blogs);
+    });
+
+    // GET API For Finding Blog
+    app.get("/pendingBlogs", async (req, res) => {
+      const blog = blogDB.find({status: 'pending'});
+      const blogs = await blog.toArray();
+      res.send(blogs);
+    });
+
+    // GET API For Finding Blog
+    app.put("/updateBlog/:id", async (req, res) => {
+      const id = req.params.id
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateData = {
+        $set: {
+          status: 'approved'
+        },
+      };
+      const result = await blogDB.updateOne(filter, updateData, options);
+      res.json(result);
+    });
+
+    // DELETE BLOG
+    app.delete("/blog/delete/:id", async (req, res) => {
+      const id = req.params.id
+      const filter = { _id: ObjectId(id) };
+      const result = await blogDB.deleteOne(filter);
+      console.log(id)
+      res.json(result);
     });
 
     // GET API For Finding Category
