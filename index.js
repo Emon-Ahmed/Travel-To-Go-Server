@@ -40,6 +40,14 @@ async function run() {
       const blogs = await blog.toArray();
       res.send(blogs);
     });
+    
+    // GET API For Finding Category
+    app.get("/category", async (req, res) => {
+      const category = categoryDB.find({});
+      const categories = await category.toArray();
+      res.send(categories);
+    });
+
 
     // GET API For Finding Single Blog
     app.get("/blogs/:id", async (req, res) => {
@@ -49,11 +57,12 @@ async function run() {
       res.send(result);
     });
 
-    // GET API For Finding Category
-    app.get("/category", async (req, res) => {
-      const category = categoryDB.find({});
-      const categories = await category.toArray();
-      res.send(categories);
+    // GET API For Finding Single Category
+    app.get("/category/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await categoryDB.findOne(query);
+      res.send(result);
     });
 
     // UPDATE - PUT API Blog
@@ -79,6 +88,22 @@ async function run() {
       res.json(result);
     });
 
+    // UPDATE - PUT API Category
+    app.put("/category/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedCat = req.body;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateCat = {
+        $set: {
+          Title: updatedCat.Title,
+          Banner: updatedCat.Banner
+        },
+      };
+      const result = await categoryDB.updateOne(filter, updateCat, options);
+      res.json(result);
+    });
+
     // DELETE API For Blog
     app.delete("/blogs/:id", async (req, res) => {
       const id = req.params.id;
@@ -86,6 +111,15 @@ async function run() {
       const result = await blogDB.deleteOne(query);
       res.json(result);
     });
+
+    // DELETE API For Category
+    app.delete("/category/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await categoryDB.deleteOne(query);
+      res.json(result);
+    });
+
   } finally {
     // await client.close();
   }
